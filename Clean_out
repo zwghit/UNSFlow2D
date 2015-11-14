@@ -1,0 +1,6 @@
+#!/bin/bash
+
+
+rm -fr FLO* *.DAT p.dat  wt.dat *.gnu fort.*	
+make clean 
+rm -fr CC_plot.dat Normals.dat res.dat Vec_InCell.dat Vec_OutCell.dat Vec_plot.dat
