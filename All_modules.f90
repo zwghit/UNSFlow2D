@@ -29,7 +29,7 @@ integer(kind=i4), parameter :: nvar=4
 !     GAMMA1= GAMMA - 1
 !     GAS_CONST = gas constant, this can be set to 1.0
 !     M_PI = value of pi
-real(kind=dp) :: GAMMA, GAMMA1, GAS_CONST, M_PI
+real(kind=dp) :: GAMMA, GAMMA1, GAS_CONST, PI
 end module commons
 
 module inf

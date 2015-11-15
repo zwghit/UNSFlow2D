@@ -121,11 +121,11 @@ enddo
 
 enddo
 
-!do it=1,noc
-!   do iv=1,nvar
-!      cell(it)%qc(iv) = cell(it)%qold(iv) + fvm(it)%dqc(iv)
-!   enddo
-!enddo
+do it=1,noc
+   do iv=1,nvar
+      cell(it)%qc(iv) = cell(it)%qold(iv) + fvm(it)%dqc(iv)
+   enddo
+enddo
 
 
 deallocate(fvm)

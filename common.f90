@@ -9,7 +9,7 @@ implicit none
 GAMMA        = 1.4d0
 GAMMA1       = GAMMA-1.0d0
 GAS_CONST    = 1.0d0
-M_PI         = 4.0d0*datan(1.0d0)
+PI         = 4.0d0*datan(1.0d0)
 
 end
 !-----------------------------------------------------------------------------
@@ -23,7 +23,7 @@ implicit none
 integer(kind=i4)  :: j
 
 q_inf = 1.d0
-aoa     = aoa_deg*M_PI/180.0d0
+aoa     = aoa_deg*PI/180.0d0
 qinf(2) = 1.d0
 qinf(3) = dcos(aoa)*q_inf
 qinf(4) = dsin(aoa)*q_inf
@@ -187,7 +187,7 @@ use pri
 use commons
 implicit none
 integer(kind=i4) :: i
-real(kind=dp)    :: ll,Ui,Vi,pi,rhoi,ai
+real(kind=dp)    :: ll,Ui,Vi,pr,rhoi,ai
 !real(kind=dp)    :: con(nvar) 
 
 call spectral
@@ -198,13 +198,15 @@ do i=1,noc
    rhoi=cell(i)%qp(1)
    Ui  =cell(i)%qp(2)
    Vi  =cell(i)%qp(3)
-   pi  =cell(i)%qp(4)
-   ai=dsqrt(gamma*pi/rhoi)
-   ll  = (dabs(Ui) + ai)*cell(i)%dx+(dabs(Vi) + ai)*cell(i)%dy
+   pr  =cell(i)%qp(4)
+   ai=dsqrt(gamma*pr/rhoi)
+   ll  = (dabs(Ui) + ai)*cell(i)%ds+(dabs(Vi) + ai)*cell(i)%ds
    cell(i)%dt  = cfl*cell(i)%cv/ll          ! local  timestep
    dtglobal = dmin1(dtglobal, cell(i)%dt)   ! global timestep
    if(cell(i)%dt<=0.0) print*,i,cell(i)%dt
 enddo
+
+
 
 end
 !======================================================================================

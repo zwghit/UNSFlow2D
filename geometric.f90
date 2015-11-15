@@ -137,13 +137,13 @@ integer(kind=i4) :: in,out
 real(kind=dp)    :: x1,y1,x2,y2
 real(kind=dp)    :: dx,dy
 
-fc(:)%cov=0.d0
 
 do i=1,nof
    p1=fc(i)%pt(1)
    p2=fc(i)%pt(2)
    in=fc(i)%in
    out=fc(i)%out
+   fc(i)%cov=0.d0
    
    if(in/=0.and.out/=0) then
       x1 = pt(p1)%x    ; y1 = pt(p1)%y
@@ -212,6 +212,7 @@ do i=1,nof
    if(fc(i)%cov <= 0.d0) then  
       print*,i,'-ve face co-volume'
       write(75,*)i,in,out
+      stop
    endif
 
    if(in/=0) cell(in)%cov=cell(in)%cov+fc(i)%cov
@@ -222,6 +223,7 @@ do i=1,noc
    if(cell(i)%cov<=0.d0) then
       print*,i,'-ve cell co-volume'
       write(75,*)i,in,out
+      stop
    endif
 enddo
 
@@ -480,7 +482,8 @@ enddo
 
 
 do i=1,noc
-   cell(i)%ds=cell(i)%ds/cell(i)%nc2f
+   !cell(i)%ds=cell(i)%ds/cell(i)%nc2f
+   cell(i)%ds=0.5d0*cell(i)%ds
    cell(i)%dx=0.5d0*cell(i)%dx
    cell(i)%dy=0.5d0*cell(i)%dy
    !cell(i)%dx=cell(i)%dx/cell(i)%nc2f
