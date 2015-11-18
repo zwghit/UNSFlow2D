@@ -64,7 +64,10 @@ do while(iter .lt. MAXITER .and. fres .gt. MINRES)
    !call Gradient_GG
 
    !Gradient calculation using diamond path reconstruction
-   call Gradient_GG_FC
+   !call Gradient_GG_FC
+
+   !Least square based Gradient calculation 
+   call Gradient_LSQR
 
 !   if (iter==500) then
 !   allocate(ggqx(noc,nvar),ggqy(noc,nvar))

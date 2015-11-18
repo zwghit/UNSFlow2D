@@ -22,12 +22,112 @@ call cell_face_norm_c2f_dist
 
 !    writes cell face  normal vector's in gnuplot format to files
 !call write_2_file
-
-
-contains
+call LSQR_Coeff1
 
 
 !========================================================
+contains
+!========================================================
+
+subroutine LSQR_Coeff
+use param
+use grid
+implicit none
+
+integer(kind=i4) :: i,j,c
+real(kind=dp)    :: dx,dy,xc,yc,del,wt
+real(kind=dp)    :: r11,r12,r22 
+
+do i=1,noc
+   xc=cell(i)%xc 
+   yc=cell(i)%yc 
+   dx=0.d0
+   dy=0.d0
+   r11=0.d0
+   r12=0.d0
+   r22=0.d0
+
+   do j=1,cell(i)%nc2c
+      c=cell(i)%c2c(j)
+      dx=cell(c)%xc-xc
+      dy=cell(c)%yc-yc
+      r11=r11+dx*dx
+      r12=r12+dx*dy
+   enddo
+
+   r11=dsqrt(r11)
+   r12=r12/r11
+
+   do j=1,cell(i)%nc2c
+      c=cell(i)%c2c(j)
+      dx=(cell(c)%xc-xc)*r12/r11
+      dy=cell(c)%yc-yc
+      r22=r22+(dy-dx)**2
+   enddo
+
+   r22=dsqrt(r22)
+
+   cell(i)%r11=r11
+   cell(i)%r12=r12
+   cell(i)%r22=r22
+
+
+enddo
+
+end subroutine LSQR_Coeff
+
+!========================================================
+
+subroutine LSQR_Coeff1
+use param
+use grid
+implicit none
+
+integer(kind=i4) :: i,j,c
+real(kind=dp)    :: dx,dy,xc,yc,del,wt,wx,wy
+real(kind=dp)    :: r11,r12,r22,alfa1,alfa2 
+
+do i=1,noc
+   xc=cell(i)%xc 
+   yc=cell(i)%yc 
+   dx=0.d0
+   dy=0.d0
+   r11=0.d0
+   r12=0.d0
+   r22=0.d0
+
+   do j=1,cell(i)%nc2c
+      c=cell(i)%c2c(j)
+      dx=cell(c)%xc-xc
+      dy=cell(c)%yc-yc
+      r11=r11+dx*dx
+      r12=r12+dx*dy
+      r22=r22+dy*dy
+   enddo
+
+   r11=dsqrt(r11)
+   r12=r12/r11
+   r22=dsqrt(r22-r12*r12 )
+!   r22=0.d0
+!   do j=1,cell(i)%nc2c
+!      c=cell(i)%c2c(j)
+!      dx=(cell(c)%xc-xc)*r12/r11
+!      dy=cell(c)%yc-yc
+!      r22=r22+(dy-dx)**2
+!   enddo
+!   r22=dsqrt(r22)
+
+   cell(i)%r11=r11
+   cell(i)%r12=r12
+   cell(i)%r22=r22
+
+enddo
+
+end subroutine LSQR_Coeff1
+
+
+!========================================================
+
 subroutine cell_2_cell
 use param
 use grid

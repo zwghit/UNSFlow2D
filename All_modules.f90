@@ -182,7 +182,7 @@ integer(kind=i4):: nop,nof,noc
 
 type points
      real(kind=dp) :: x,y,z
-     real(kind=dp) :: prim(nvar)=0.d0,dx(nvar)=0.d0,dy(nvar)=0.d0
+     real(kind=dp) :: prim(1:nvar)=0.d0,dx(1:nvar)=0.d0,dy(1:nvar)=0.d0
      integer(kind=i4):: bc,flag,nv2c
      integer(kind=i4),dimension(:),pointer::v2c
      real(kind=dp),dimension(:),pointer::wt
@@ -194,7 +194,7 @@ type faces
      integer(kind=i4):: out
      integer(kind=i4):: bc
      integer(kind=i4):: flag
-     real(kind=dp)   :: qx(nvar)=0.d0,qy(nvar)=0.d0
+     real(kind=dp)   :: qx(1:nvar)=0.d0,qy(1:nvar)=0.d0
      real(kind=dp)   :: sx,sy,cov,la
      real(kind=dp)   :: ldx=0.d0,ldy=0.d0 ! dist b/ Cell Center & Face Center
      real(kind=dp)   :: rdx,rdy ! dist b/ Cell Center & Face Center
@@ -202,10 +202,11 @@ end type faces
 
 type cells
      integer(kind=i4):: nc2v,nc2f,nc2c
-     real(kind=dp)   :: xc,yc,zc,cv,cov,phi(nvar)=1e20,ds
+     real(kind=dp)   :: xc,yc,zc,cv,cov,phi(1:nvar)=1e20,ds
      real(kind=dp)   :: dx,dy,dt,la,ls
-     real(kind=dp)   :: qp(nvar)=0.d0,qc(nvar)=0.d0,qold(nvar)=0.d0,res(nvar)=0.d0
-     real(kind=dp)   :: qx(nvar)=0.d0,qy(nvar)=0.d0,DUmax(nvar)=0.d0,DUmin(nvar)=0.d0
+     real(kind=dp)   :: r11,r12,r22 
+     real(kind=dp)   :: qp(1:nvar)=0.d0,qc(1:nvar)=0.d0,qold(1:nvar)=0.d0,res(1:nvar)=0.d0
+     real(kind=dp)   :: qx(1:nvar)=0.d0,qy(1:nvar)=0.d0,DUmax(1:nvar)=0.d0,DUmin(1:nvar)=0.d0
      integer(kind=i4),dimension(:),pointer::c2v
      integer(kind=i4),dimension(:),pointer::c2f
      integer(kind=i4),dimension(:),pointer::c2c

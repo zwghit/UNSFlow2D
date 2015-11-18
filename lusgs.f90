@@ -152,6 +152,6 @@ flux(2) = rho*un
 flux(3) = flux(2)*u + p*sx
 flux(4) = flux(2)*v + p*sy
 
-end
+end subroutine normalflux
 
 end

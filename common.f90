@@ -454,6 +454,51 @@ call limiter_VKN
 end subroutine Gradient_GG_FC
 
 !======================================================================================
+subroutine Gradient_LSQR
+use grid 
+use commons
+implicit none
+integer(kind=i4) :: i,j,k,c
+real(kind=dp)    :: xc,yc,dx,dy,wt
+real(kind=dp)    :: wx,wy     
+real(kind=dp)    :: r11,r12,r22,alfa1,alfa2
+
+
+do i=1,noc
+   cell(i)%qx(:)=0.d0
+   cell(i)%qy(:)=0.d0
+enddo
+
+do i=1,noc
+   xc=cell(i)%xc
+   yc=cell(i)%yc
+   r11=cell(i)%r11
+   r12=cell(i)%r12
+   r22=cell(i)%r22
+
+  do k=1,nvar
+   do j=1,cell(i)%nc2c
+      c=cell(i)%c2c(j)
+      dx=cell(c)%xc-xc
+      dy=cell(c)%yc-yc
+
+      alfa1=dx/r11/r11
+      alfa2=(dy-dx*r12/r11)/r22/r22
+      wx=alfa1-alfa2*r12/r11
+      wy=alfa2
+
+      cell(i)%qx(k)=cell(i)%qx(k)+(cell(c)%qp(k)-cell(i)%qp(k))*wx
+      cell(i)%qy(k)=cell(i)%qy(k)+(cell(c)%qp(k)-cell(i)%qp(k))*wy
+    enddo
+   enddo
+
+enddo
+
+call limiter_VKN
+
+end subroutine Gradient_LSQR
+
+!======================================================================================
 
 subroutine limiter_VKN 
 use grid 
@@ -486,71 +531,38 @@ do i=1,noc
    enddo  
 enddo
 
-kappa=0.30
-do i=1,nof
-   in = fc(i)%in
-   out = fc(i)%out
+kappa=0.10
+do i=1,noc
    
+   !TOL=(kappa*cell(in)%ds)**2
+   TOL=(kappa*dsqrt(cell(i)%cv))**3
    do j=1,nvar 
-      if(in/=0) then
-      ! Left
-      !TOL=(kappa*cell(in)%ds)**2
-      TOL=(kappa*dsqrt(cell(in)%cv))**3
-      dx = fc(i)%ldx
-      dy = fc(i)%ldy
-      D_L=cell(in)%qx(j)*dx+cell(in)%qy(j)*dy
-      !D_L0=dsign(D_L,1.d0)*(dabs(D_L)+eps) 
-      D_L0=D_L
 
-      if(D_L>eps) then
-         alfa=cell(in)%dumax(j)
-         if(dabs(alfa)<eps) alfa=0.d0
-         nr=(alfa*alfa+TOL)*D_L+2.d0*D_L*D_L*alfa
-         dr=alfa*alfa+2.d0*D_L*D_L+alfa*D_L+TOL
-         phi=dmin1(1.d0,nr/dr/D_L0)
-      elseif(D_L<-eps) then
-         alfa=cell(in)%dumin(j)
-         if(dabs(alfa)<eps) alfa=0.d0
-         nr=(alfa*alfa+TOL)*D_L+2.d0*D_L*D_L*alfa
-         dr=alfa*alfa+2.d0*D_L*D_L+alfa*D_L+TOL
-         phi=dmin1(1.d0,nr/dr/D_L0)
-      else
-         phi=0.d0
-      endif 
-   
-      cell(in)%phi(j)=dmin1(cell(in)%phi(j),phi)
-      endif 
+      do k=1,cell(i)%nc2c
+         c=cell(i)%c2c(k)
+         D_L=cell(c)%qp(j)-cell(i)%qp(j)
+         !D_L0=dsign(D_L,1.d0)*(dabs(D_L)+eps) 
+         D_L0=D_L
+
+         if(D_L>eps) then
+            alfa=cell(i)%dumax(j)
+            if(dabs(alfa)<eps) alfa=0.d0
+            nr=(alfa*alfa+TOL)*D_L+2.d0*D_L*D_L*alfa
+            dr=alfa*alfa+2.d0*D_L*D_L+alfa*D_L+TOL
+            phi=dmin1(1.d0,nr/dr/D_L0)
+         elseif(D_L<-eps) then
+            alfa=cell(i)%dumin(j)
+            if(dabs(alfa)<eps) alfa=0.d0
+            nr=(alfa*alfa+TOL)*D_L+2.d0*D_L*D_L*alfa
+            dr=alfa*alfa+2.d0*D_L*D_L+alfa*D_L+TOL
+            phi=dmin1(1.d0,nr/dr/D_L0)
+         else
+            phi=0.d0
+         endif 
       
-      if(out/=0) then
-      ! Right
-      !TOL=(kappa*cell(out)%ds)
-      TOL=(kappa*dsqrt(cell(out)%cv))**3
-      dx = fc(i)%rdx
-      dy = fc(i)%rdy
-      D_L=cell(out)%qx(j)*dx+cell(out)%qy(j)*dy
-      !D_L0=dsign(D_L,1.d0)*(dabs(D_L)+eps) 
-      D_L0=D_L
+         cell(i)%phi(j)=dmin1(cell(i)%phi(j),phi)
 
-      if(D_L>eps) then
-         alfa=cell(out)%dumax(j)
-         if(dabs(alfa)<eps) alfa=0.d0
-         nr=(alfa*alfa+TOL)*D_L+2.d0*D_L*D_L*alfa
-         dr=alfa*alfa+2.d0*D_L*D_L+alfa*D_L+TOL
-         phi=dmin1(1.d0,nr/dr/D_L0)
-      elseif(D_L<-eps) then
-         alfa=cell(out)%dumin(j)
-         if(dabs(alfa)<eps) alfa=0.d0
-         nr=(alfa*alfa+TOL)*D_L+2.d0*D_L*D_L*alfa
-         dr=alfa*alfa+2.d0*D_L*D_L+alfa*D_L+TOL
-         phi=dmin1(1.d0,nr/dr/D_L0)
-      else
-         phi=0.d0
-      endif 
-
-      cell(out)%phi(j)=dmin1(cell(out)%phi(j),phi)
-      endif 
-
-
+      enddo  
    enddo  
 enddo  
 
