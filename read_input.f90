@@ -105,7 +105,7 @@ do i=1,nop
  read(3,*)j,pt(i)%x,pt(i)%y,pt(i)%bc
 enddo
 do i=1,noc
- read(3,*)j,cell(i)%xc,cell(i)%yc,cell(i)%cv
+ read(3,*)j,cell(i)%cen(1),cell(i)%cen(2),cell(i)%cv
 enddo
 do i=1,nof
  read(3,*)j,fc(i)%pt(1),fc(i)%pt(2),fc(i)%in,fc(i)%out,fc(i)%sx,fc(i)%sy,fc(i)%bc

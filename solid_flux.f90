@@ -11,12 +11,12 @@ real(kind=dp) :: nx, ny,con(nvar)
 !con(:)=cell(cc)%qc(:)
 !call con2prim(con)
 
-nx=fc(ie)%ldx
-ny=fc(ie)%ldy
-if(fc(ie)%ldx==0.d0.and.fc(ie)%ldy==0.d0) then
-nx=fc(ie)%rdx
-ny=fc(ie)%rdy
-endif
+!nx=fc(ie)%ldx
+!ny=fc(ie)%ldy
+!if(fc(ie)%ldx==0.d0.and.fc(ie)%ldy==0.d0) then
+!nx=fc(ie)%rdx
+!ny=fc(ie)%rdy
+!endif
 
 con(:)=cell(cc)%qp(:)!+(cell(cc)%qx(:)*nx+cell(cc)%qy(:)*ny)
 

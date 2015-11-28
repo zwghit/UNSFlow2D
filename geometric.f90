@@ -22,7 +22,7 @@ call cell_face_norm_c2f_dist
 
 !    writes cell face  normal vector's in gnuplot format to files
 !call write_2_file
-call LSQR_Coeff1
+call LSQR_Coeff
 
 
 !========================================================
@@ -35,12 +35,12 @@ use grid
 implicit none
 
 integer(kind=i4) :: i,j,c
-real(kind=dp)    :: dx,dy,xc,yc,del,wt
-real(kind=dp)    :: r11,r12,r22 
+real(kind=dp)    :: dx,dy,xc,yc
+real(kind=dp)    :: r11,r12,r22
 
 do i=1,noc
-   xc=cell(i)%xc 
-   yc=cell(i)%yc 
+   xc=cell(i)%cen(1) 
+   yc=cell(i)%cen(2) 
    dx=0.d0
    dy=0.d0
    r11=0.d0
@@ -49,57 +49,8 @@ do i=1,noc
 
    do j=1,cell(i)%nc2c
       c=cell(i)%c2c(j)
-      dx=cell(c)%xc-xc
-      dy=cell(c)%yc-yc
-      r11=r11+dx*dx
-      r12=r12+dx*dy
-   enddo
-
-   r11=dsqrt(r11)
-   r12=r12/r11
-
-   do j=1,cell(i)%nc2c
-      c=cell(i)%c2c(j)
-      dx=(cell(c)%xc-xc)*r12/r11
-      dy=cell(c)%yc-yc
-      r22=r22+(dy-dx)**2
-   enddo
-
-   r22=dsqrt(r22)
-
-   cell(i)%r11=r11
-   cell(i)%r12=r12
-   cell(i)%r22=r22
-
-
-enddo
-
-end subroutine LSQR_Coeff
-
-!========================================================
-
-subroutine LSQR_Coeff1
-use param
-use grid
-implicit none
-
-integer(kind=i4) :: i,j,c
-real(kind=dp)    :: dx,dy,xc,yc,del,wt,wx,wy
-real(kind=dp)    :: r11,r12,r22,alfa1,alfa2 
-
-do i=1,noc
-   xc=cell(i)%xc 
-   yc=cell(i)%yc 
-   dx=0.d0
-   dy=0.d0
-   r11=0.d0
-   r12=0.d0
-   r22=0.d0
-
-   do j=1,cell(i)%nc2c
-      c=cell(i)%c2c(j)
-      dx=cell(c)%xc-xc
-      dy=cell(c)%yc-yc
+      dx=cell(c)%cen(1)-xc
+      dy=cell(c)%cen(2)-yc
       r11=r11+dx*dx
       r12=r12+dx*dy
       r22=r22+dy*dy
@@ -108,22 +59,13 @@ do i=1,noc
    r11=dsqrt(r11)
    r12=r12/r11
    r22=dsqrt(r22-r12*r12 )
-!   r22=0.d0
-!   do j=1,cell(i)%nc2c
-!      c=cell(i)%c2c(j)
-!      dx=(cell(c)%xc-xc)*r12/r11
-!      dy=cell(c)%yc-yc
-!      r22=r22+(dy-dx)**2
-!   enddo
-!   r22=dsqrt(r22)
 
    cell(i)%r11=r11
    cell(i)%r12=r12
    cell(i)%r22=r22
-
 enddo
 
-end subroutine LSQR_Coeff1
+end subroutine LSQR_Coeff
 
 
 !========================================================
@@ -247,21 +189,21 @@ do i=1,nof
    
    if(in/=0.and.out/=0) then
       x1 = pt(p1)%x    ; y1 = pt(p1)%y
-      x2 = cell(out)%xc ; y2 = cell(out)%yc
+      x2 = cell(out)%cen(1) ; y2 = cell(out)%cen(2)
       dx = 0.5d0*(x2+x1) ; dy = y2-y1
       fc(i)%cov=fc(i)%cov+dx*dy
    
-      x1 = cell(out)%xc ; y1 = cell(out)%yc
+      x1 = cell(out)%cen(1) ; y1 = cell(out)%cen(2)
       x2 = pt(p2)%x    ; y2 = pt(p2)%y
       dx = 0.5d0*(x2+x1) ; dy = y2-y1
       fc(i)%cov=fc(i)%cov+dx*dy
    
       x1 = pt(p2)%x    ; y1 = pt(p2)%y
-      x2 = cell(in)%xc ; y2 = cell(in)%yc
+      x2 = cell(in)%cen(1) ; y2 = cell(in)%cen(2)
       dx = 0.5d0*(x2+x1) ; dy = y2-y1
       fc(i)%cov=fc(i)%cov+dx*dy
    
-      x1 = cell(in)%xc ; y1 = cell(in)%yc
+      x1 = cell(in)%cen(1) ; y1 = cell(in)%cen(2)
       x2 = pt(p1)%x    ; y2 = pt(p1)%y
       dx = 0.5d0*(x2+x1) ; dy = y2-y1
       fc(i)%cov=fc(i)%cov+dx*dy
@@ -269,11 +211,11 @@ do i=1,nof
 
    if(in==0.and.out/=0) then
       x1 = pt(p1)%x    ; y1 = pt(p1)%y
-      x2 = cell(out)%xc ; y2 = cell(out)%yc
+      x2 = cell(out)%cen(1) ; y2 = cell(out)%cen(2)
       dx = 0.5d0*(x2+x1) ; dy = y2-y1
       fc(i)%cov=fc(i)%cov+dx*dy
    
-      x1 = cell(out)%xc ; y1 = cell(out)%yc
+      x1 = cell(out)%cen(1) ; y1 = cell(out)%cen(2)
       x2 = pt(p2)%x    ; y2 = pt(p2)%y
       dx = 0.5d0*(x2+x1) ; dy = y2-y1
       fc(i)%cov=fc(i)%cov+dx*dy
@@ -291,11 +233,11 @@ do i=1,nof
       fc(i)%cov=fc(i)%cov+dx*dy
 
       x1 = pt(p2)%x    ; y1 = pt(p2)%y
-      x2 = cell(in)%xc ; y2 = cell(in)%yc
+      x2 = cell(in)%cen(1) ; y2 = cell(in)%cen(2)
       dx = 0.5d0*(x2+x1) ; dy = y2-y1
       fc(i)%cov=fc(i)%cov+dx*dy
    
-      x1 = cell(in)%xc ; y1 = cell(in)%yc
+      x1 = cell(in)%cen(1) ; y1 = cell(in)%cen(2)
       x2 = pt(p1)%x    ; y2 = pt(p1)%y
       dx = 0.5d0*(x2+x1) ; dy = y2-y1
       fc(i)%cov=fc(i)%cov+dx*dy
@@ -359,8 +301,8 @@ do i=1,nof
    in=fc(i)%in
    out=fc(i)%out
    if(in==0) then
-      xc=cell(out)%xc
-      yc=cell(out)%yc
+      xc=cell(out)%cen(1)
+      yc=cell(out)%cen(2)
       p1=fc(i)%pt(1)
       p2=fc(i)%pt(2)
       check=dotprod(p1,p2,xc,yc)
@@ -376,8 +318,8 @@ do i=1,nof
    endif  
 
    if(out==0) then
-      xc=cell(in)%xc
-      yc=cell(in)%yc
+      xc=cell(in)%cen(1)
+      yc=cell(in)%cen(2)
       p1=fc(i)%pt(1)
       p2=fc(i)%pt(2)
       check=dotprod(p1,p2,xc,yc)
@@ -396,30 +338,30 @@ enddo
 
 ! cell center to face distance
 do i=1,nof
-   in=fc(i)%in
-   out=fc(i)%out
+   !in=fc(i)%in
+   !out=fc(i)%out
    
    p1=fc(i)%pt(1)
    p2=fc(i)%pt(2)
    
-   xfc=0.5d0*(pt(p1)%x+pt(p2)%x)
-   yfc=0.5d0*(pt(p1)%y+pt(p2)%y)
+   fc(i)%cen(1)=0.5d0*(pt(p1)%x+pt(p2)%x)
+   fc(i)%cen(2)=0.5d0*(pt(p1)%y+pt(p2)%y)
    
-   ! Left cell distance 
-   if(in/=0) then
-   xc1=cell(in)%xc
-   yc1=cell(in)%yc
-   fc(i)%ldx = xfc-xc1 
-   fc(i)%ldy = yfc-yc1 
-   endif
-
-   ! Right cell distance 
-   if(out/=0) then
-   xc2=cell(out)%xc
-   yc2=cell(out)%yc
-   fc(i)%rdx = xfc-xc2 
-   fc(i)%rdy = yfc-yc2 
-   endif
+!   ! Left cell distance 
+!   if(in/=0) then
+!   xc1=cell(in)%cen(1)
+!   yc1=cell(in)%cen(2)
+!   fc(i)%ldx = xfc-xc1 
+!   fc(i)%ldy = yfc-yc1 
+!   endif
+!
+!   ! Right cell distance 
+!   if(out/=0) then
+!   xc2=cell(out)%cen(1)
+!   yc2=cell(out)%cen(2)
+!   fc(i)%rdx = xfc-xc2 
+!   fc(i)%rdy = yfc-yc2 
+!   endif
 
 enddo
 
@@ -505,8 +447,8 @@ do i=1,nop
    allocate(pt(i)%wt(pt(i)%nv2c))
    do j=1,pt(i)%nv2c
       c=pt(i)%v2c(j)
-      xc=cell(c)%xc 
-      yc=cell(c)%yc 
+      xc=cell(c)%cen(1) 
+      yc=cell(c)%cen(2) 
       dx=xc-pt(i)%x
       dy=yc-pt(i)%y
       pt(i)%wt(j)=1.d0/dsqrt(dx*dx+dy*dy)
@@ -531,7 +473,7 @@ implicit none
 
 integer(kind=i4) :: i
 integer(kind=i4) :: in,out
-real(kind=dp)    :: dx,dy,ds
+real(kind=dp)    :: dx,dy,ds,sx,sy
 
 
 
@@ -564,31 +506,31 @@ cell(:)%dy=0.d0
 do i=1,nof
    in=fc(i)%in
    out=fc(i)%out
-   dx=dabs(fc(i)%sy)
-   dy=dabs(fc(i)%sx)
-   ds=dsqrt(dx*dx+dy*dy)
+   sx=0.50*fc(i)%sx
+   sy=0.5d0*fc(i)%sy
+   ds=dsqrt(sx*sx+sy*sy)
    if(in/=0) then 
      cell(in)%ds=cell(in)%ds+ds
-     cell(in)%dx=cell(in)%dx+dx
-     cell(in)%dy=cell(in)%dy+dy
+     cell(in)%dx=cell(in)%dx+sx
+     cell(in)%dy=cell(in)%dy+sy
    endif 
 
    if(out/=0) then 
      cell(out)%ds=cell(out)%ds+ds
-     cell(out)%dx=cell(out)%dx+dx
-     cell(out)%dy=cell(out)%dy+dy
+     cell(out)%dx=cell(out)%dx+sx
+     cell(out)%dy=cell(out)%dy+sy
    endif 
 enddo
 
 
-do i=1,noc
-   !cell(i)%ds=cell(i)%ds/cell(i)%nc2f
-   cell(i)%ds=0.5d0*cell(i)%ds
-   cell(i)%dx=0.5d0*cell(i)%dx
-   cell(i)%dy=0.5d0*cell(i)%dy
+!do i=1,noc
+!   !cell(i)%ds=cell(i)%ds/cell(i)%nc2f
+!   cell(i)%ds=0.5d0*cell(i)%ds
+!   cell(i)%dx=0.5d0*cell(i)%dx
+!   cell(i)%dy=0.5d0*cell(i)%dy
    !cell(i)%dx=cell(i)%dx/cell(i)%nc2f
    !cell(i)%dy=cell(i)%dy/cell(i)%nc2f
-enddo
+!enddo
 
 end subroutine avg_cell_face_length
 !====================================================================
@@ -619,8 +561,8 @@ print*,"==> Vertex surrounding a cell "
 
 cell(:)%nc2v=0
 do i=1,noc
-   xc=cell(i)%xc
-   yc=cell(i)%yc
+   xc=cell(i)%cen(1)
+   yc=cell(i)%cen(2)
       p1=fc(cell(i)%c2f(1))%pt(1)
       p2=fc(cell(i)%c2f(1))%pt(2)
       check=dotprod(p1,p2,xc,yc)
@@ -727,9 +669,9 @@ do i=1,nof
    x1 = (x2+x1)/2.0d0 ; y1= (y2+y1)/2.0d0
    !in=fc(i)%in
    !out=fc(i)%out
-   !if(fc(i)%bc==1001.and.in>0) write(4,100)x1,y1,cell(in)%xc-x1,cell(in)%yc-y1
+   !if(fc(i)%bc==1001.and.in>0) write(4,100)x1,y1,cell(in)%cen(1)-x1,cell(in)%cen(2)-y1
    if(fc(i)%bc==1001) write(4,100)x1,y1,fc(i)%sx,fc(i)%sy
-   !if(fc(i)%bc==1001.and.out>0) write(4,100)x1,y1,cell(out)%xc-x1,cell(out)%yc-y1
+   !if(fc(i)%bc==1001.and.out>0) write(4,100)x1,y1,cell(out)%cen(1)-x1,cell(out)%cen(2)-y1
    if(fc(i)%bc==2001) write(5,100)x1,y1,fc(i)%sx,fc(i)%sy
 enddo
 close(3)
@@ -772,7 +714,7 @@ close(3)
 
 open(3,file='CC_plot.dat')
 do i=1,noc
-   write(3,*)cell(i)%xc,cell(i)%yc
+   write(3,*)cell(i)%cen(1),cell(i)%cen(2)
    write(3,*)
 enddo
 close(3)
@@ -855,7 +797,7 @@ do i=1,noc
 enddo
 
 !c=1
-!cc=minloc(cell(1:noc)%xc,dim=1)
+!cc=minloc(cell(1:noc)%cen(1),dim=1)
 !oldnum(1)=cc
 !newnum(cc)=1
 !is=c
@@ -890,7 +832,7 @@ enddo
 !enddo
 !
 c=1
-!c=minloc(cell(1:noc)%xc,dim=1)
+!c=minloc(cell(1:noc)%cen(1),dim=1)
 oldnum(1)=c
 newnum(1)=c
 !print*,'minloc x=',c
@@ -924,8 +866,8 @@ endif
 
 do i=1,noc
    elmn(i)%nc2c=0
-   elmn(i)%xc=cell(i)%xc
-   elmn(i)%yc=cell(i)%yc
+   elmn(i)%cen(1)=cell(i)%cen(1)
+   elmn(i)%cen(2)=cell(i)%cen(2)
    elmn(i)%cv=cell(i)%cv
    do j=1,cell(i)%nc2c
       elmn(i)%nc2c=elmn(i)%nc2c+1
@@ -952,8 +894,8 @@ enddo
 do i=1,noc
    it=oldnum(i)
    cell(i)%nc2c=0
-   cell(i)%xc=elmn(it)%xc
-   cell(i)%yc=elmn(it)%yc
+   cell(i)%cen(1)=elmn(it)%cen(1)
+   cell(i)%cen(2)=elmn(it)%cen(2)
    cell(i)%cv=elmn(it)%cv
    do j=1,elmn(it)%nc2c
       t1=elmn(it)%c2c(j)

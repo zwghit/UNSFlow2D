@@ -17,7 +17,7 @@ real(kind=dp) :: rl, ul, vl, pl, al2, hl, rr, ur, vr, pr, ar2, hr, &
             du1, du2, du3, du4, flux, dl, dr, li(4), limit, &
             e1, e4, del
 real(kind=dp), parameter :: ETOL=0.01d0
-real(kind=dp):: nx,ny,area,con(nvar),cl,cr 
+real(kind=dp):: nx,ny,area,con(nvar),cl,cr,dist,grad(nvar) 
 
 nx = fc(ie)%sx
 ny = fc(ie)%sy
@@ -30,7 +30,11 @@ qcr(:)=0.d0
 
 
 !     Left state
-qcl(:)=cell(c1)%qp(:)+(cell(c1)%qx(:)*fc(ie)%ldx+cell(c1)%qy(:)*fc(ie)%ldy)
+qcl(:)=cell(c1)%qp(:)
+do i=1,ndim
+dist=fc(ie)%cen(i)-cell(c1)%cen(i)
+qcl(:)=qcl(:)+cell(c1)%grad(i,:)*dist
+enddo
 
 rl = qcl(1)
 ul = qcl(2)
@@ -38,7 +42,11 @@ vl = qcl(3)
 pl = qcl(4)
 
 !     Right state
-qcr(:)=cell(c2)%qp(:)-(cell(c2)%qx(:)*fc(ie)%rdx+cell(c2)%qy(:)*fc(ie)%rdy)
+qcr(:)=cell(c2)%qp(:)
+do i=1,ndim
+dist=fc(ie)%cen(i)-cell(c2)%cen(i)
+qcr(:)=qcr(:)+cell(c2)%grad(i,:)*dist
+enddo
 
 rr = qcr(1)
 ur = qcr(2)

@@ -18,6 +18,7 @@ do ie=1,nof
    c2 = fc(ie)%out
    if(c1 /=0 .and.c2 /=0) call vanleer_flux(ie,c1,c2)
    !if(c1 /=0 .and.c2 /=0) call roe_flux(ie,c1,c2)
+   !if(c1 /=0 .and.c2 /=0) call ausmPlus_flux(ie,c1,c2)
 enddo
 
 

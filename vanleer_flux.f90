@@ -21,7 +21,7 @@ real(kind=dp):: fmass_p,fmass_m,fener_p,fener_m,dissi
 real(kind=dp):: fluxL(nvar),fluxR(nvar),fluxP(nvar),LIMIT,limit1
 real(kind=dp) :: x1(2), x2(2), qcl(nvar), qcr(nvar), qvl(nvar), &
             qvr(nvar), resl(nvar), resr(nvar)
-real(kind=dp):: li(nvar),nx,ny,area,con(nvar)
+real(kind=dp):: li(nvar),nx,ny,area,con(nvar),dist,grad(nvar)
 
 !------------------------------------------------------------------------------
 nx = fc(ie)%sx 
@@ -35,38 +35,42 @@ qcr(:)=0.d0
 
 
 !     Left state
-qcl(:)=cell(c1)%qp(:)+(cell(c1)%qx(:)*fc(ie)%ldx+cell(c1)%qy(:)*fc(ie)%ldy)
+qcl(:)=cell(c1)%qp(:)
+do i=1,ndim
+dist=fc(ie)%cen(i)-cell(c1)%cen(i)
+qcl(:)=qcl(:)+cell(c1)%grad(i,:)*dist
+enddo
 
 rl = qcl(1)
 ul = qcl(2)
 vl = qcl(3)
 pl = qcl(4)
 
+unl = ul*nx + vl*ny
+ql2= ul*ul + vl*vl
+al2= GAMMA*pl/rl
+hl = al2/GAMMA1 + 0.5d0*ql2
+cl =dsqrt(al2)
+ml = unl/cl
+
+
 !     Right state
-qcr(:)=cell(c2)%qp(:)+(cell(c2)%qx(:)*fc(ie)%rdx+cell(c2)%qy(:)*fc(ie)%rdy)
+qcr(:)=cell(c2)%qp(:)
+do i=1,ndim
+dist=fc(ie)%cen(i)-cell(c2)%cen(i)
+qcr(:)=qcr(:)+cell(c2)%grad(i,:)*dist
+enddo
 
 rr = qcr(1)
 ur = qcr(2)
 vr = qcr(3)
 pr = qcr(4)
 
-
-ql2= ul*ul + vl*vl
-al2= GAMMA*pl/rl
-hl = al2/GAMMA1 + 0.5d0*ql2
-cl =dsqrt(al2)
-
+unr = ur*nx + vr*ny
 qr2= ur*ur + vr*vr
 ar2= GAMMA*pr/rr
 hr = ar2/GAMMA1 + 0.5d0*qr2
 cr =dsqrt(ar2)
-
-
-!     Rotated velocity
-unl = ul*nx + vl*ny
-unr = ur*nx + vr*ny
-
-ml = unl/cl
 mr = unr/cr
 
 beta=0.0d0

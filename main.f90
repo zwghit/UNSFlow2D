@@ -33,7 +33,7 @@ if(timemode=="rk3".and.cfl_max > 1.0d0) then
    stop
 elseif(timemode=="rk3".and.cfl_max < 1.0d0) then
 print*,'RK3'
-NIRK    = 5
+NIRK    = 3
 allocate(airk(nirk),birk(nirk))
 airk(1) = 0.0d0
 airk(2) = 3.0d0/4.0d0
@@ -61,13 +61,13 @@ do while(iter .lt. MAXITER .and. fres .gt. MINRES)
    call save_old
 
    !Gradient calculation using Green-Gauss
-   !call Gradient_GG
+   call Gradient_GG
 
    !Gradient calculation using diamond path reconstruction
    !call Gradient_GG_FC
 
    !Least square based Gradient calculation 
-   call Gradient_LSQR
+   !call Gradient_LSQR
 
 !   if (iter==500) then
 !   allocate(ggqx(noc,nvar),ggqy(noc,nvar))
@@ -91,23 +91,23 @@ do while(iter .lt. MAXITER .and. fres .gt. MINRES)
       alfa=0.d0
       do irk=1,nirk
          call fvresidual
-!         do i=1,noc
-!            c1(:)=cell(i)%qold(:)
-!            c2(:)=cell(i)%qc(:)
-!            dtbyarea=cell(i)%dt/cell(i)%cv
-!            do j=1,nvar
-!               c3(j) = airk(irk)*c1(j) + &
-!               birk(irk)*(c2(j)-dtbyarea*cell(i)%res(j))
-!            enddo
-!            cell(i)%qc(:)=c3(:)
-!         enddo
-       alfa=1.d0/dble(nirk-irk+1)     
-       do i=1,noc
-          dtbyarea=cell(i)%dt/cell(i)%cv
-          do j=1,nvar
-             cell(i)%qc(j)=cell(i)%qold(j)-alfa*dtbyarea*cell(i)%res(j)
-          enddo
-       enddo
+         do i=1,noc
+            c1(:)=cell(i)%qold(:)
+            c2(:)=cell(i)%qc(:)
+            dtbyarea=cell(i)%dt/cell(i)%cv
+            do j=1,nvar
+               c3(j) = airk(irk)*c1(j) + &
+               birk(irk)*(c2(j)-dtbyarea*cell(i)%res(j))
+            enddo
+            cell(i)%qc(:)=c3(:)
+         enddo
+!       alfa=1.d0/dble(nirk-irk+1)     
+!       do i=1,noc
+!          dtbyarea=cell(i)%dt/cell(i)%cv
+!          do j=1,nvar
+!             cell(i)%qc(j)=cell(i)%qold(j)-alfa*dtbyarea*cell(i)%res(j)
+!          enddo
+!       enddo
       enddo
    elseif(timemode == 'lusgs')then
       call lusgs
@@ -294,7 +294,7 @@ WRITE(funit,*)'VARIABLES="X","Y","rhodx","rhody","udx","udy","vdx","vdy","pdx","
 WRITE(funit,*) 'ZONE F=FEPOINT,ET=quadrilateral'
 WRITE(funit,*) 'N=',nop,',E=',noc
 do i=1,nop
-    WRITE(funit,100)pt(i)%x,pt(i)%y,pt(i)%dx(1),pt(i)%dy(1),pt(i)%dx(2),pt(i)%dy(2),pt(i)%dx(3),pt(i)%dy(3),pt(i)%dx(4),pt(i)%dy(4)
+    WRITE(funit,100)pt(i)%x,pt(i)%y,pt(i)%grad(1,1),pt(i)%grad(2,1),pt(i)%grad(1,2),pt(i)%grad(2,2),pt(i)%grad(1,3),pt(i)%grad(2,3),pt(i)%grad(1,4),pt(i)%grad(2,4)
 END DO
 DO i=1,noc
    !WRITE(funit,*)elem(1,i), elem(2,i), elem(3,i) 
@@ -318,58 +318,3 @@ END DO
 
 
 END SUBROUTINE
-
-
-function dotprod(n1,n2,xc,yc)
-   use grid
-   implicit none
-   integer(kind=i4):: n1,n2
-   real(kind=dp)   :: x1,y1,x2,y2
-   real(kind=dp)   :: dx,dy,ds,xc,yc
-   real(kind=dp)   :: dotprod,nx,ny,rx,ry
-
-
-   x1 = pt(n1)%x ; y1 = pt(n1)%y
-   x2 = pt(n2)%x ; y2 = pt(n2)%y
-   dx = x2-x1 ; dy = y2-y1
-   ds = dsqrt(dx*dx+dy*dy)
-   nx = dy/ds ; ny = -dx/ds
-
-   dx = xc-x1 ; dy = yc-y1
-   ds = dsqrt(dx*dx+dy*dy)
-   rx = dx/ds
-   ry = dy/ds
-   dotprod = rx*nx+ry*ny
-
-end function dotprod
-
-
-function crossprod(n1,n2,m1,m2)
-   use grid
-   implicit none
-   integer(kind=i4):: n1,n2,m1,m2
-   real(kind=dp)   :: x1,y1,x2,y2
-   real(kind=dp)   :: x3,y3,x4,y4
-   real(kind=dp)   :: dx,dy,ds
-   real(kind=dp)   :: crossprod,nx,ny,rx,ry
-
-
-   x1 = pt(n1)%x ; y1 = pt(n1)%y
-   x2 = pt(n2)%x ; y2 = pt(n2)%y
-
-   x3 = pt(m1)%x ; y3 = pt(m1)%y
-   x4 = pt(m2)%x ; y4 = pt(m2)%y
-
-   dx = x2-x1 ; dy = y2-y1
-   ds = dsqrt(dx*dx+dy*dy)
-   nx = dy/ds ; ny = -dx/ds
-
-   dx = x4-x3 ; dy = y4-y3
-   ds = dsqrt(dx*dx+dy*dy)
-   rx = dx/ds
-   ry = dy/ds
-
-   crossprod = nx*ry-ny*rx
-
-end function crossprod
-
