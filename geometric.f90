@@ -21,7 +21,7 @@ call face_co_volume
 call cell_face_norm_c2f_dist
 
 !    writes cell face  normal vector's in gnuplot format to files
-!call write_2_file
+call write_2_file
 call LSQR_Coeff
 
 

@@ -9,8 +9,8 @@ implicit none
 !!------------------------------------------------------------------------------
 integer(kind=i4):: i,j,it,iv,in,out,c,itr,inner_itr
 real(kind=dp):: omega,lam 
-real(kind=dp):: cres(nvar), flux1(nvar), flux2(nvar) 
-real(kind=dp):: sx,sy,ds,dflux(nvar),qa(nvar)
+real(kind=dp):: cres(nvar)
+real(kind=dp):: sx,sy,ds,dflux(nvar)
 type fvms
        real(kind=dp)                :: diag
        real(kind=dp),dimension(nvar):: lower,upper

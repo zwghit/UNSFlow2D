@@ -61,10 +61,10 @@ do while(iter .lt. MAXITER .and. fres .gt. MINRES)
    call save_old
 
    !Gradient calculation using Green-Gauss
-   call Gradient_GG
+   !call Gradient_GG
 
    !Gradient calculation using diamond path reconstruction
-   !call Gradient_GG_FC
+   call Gradient_GG_FC
 
    !Least square based Gradient calculation 
    !call Gradient_LSQR
@@ -226,6 +226,10 @@ integer(kind=i4) :: i,j,c, funit
 real(kind=dp) :: con(nvar),qc(nvar)
 real(kind=dp) :: q2, mach,entropy,mul,mutot,sutherland
 real(kind=dp) :: ro , uo,vo,po,wt,x1,x2,y1,y2
+character(len=15) :: ctype
+
+if(maxval(cell(:)%nc2f) == 3) ctype="TRIANGLE"
+if(maxval(cell(:)%nc2f) == 4) ctype="quadrilateral"
 
 funit = 5
 call avg_c2v
@@ -235,7 +239,8 @@ WRITE(funit,*) 'TITLE = "flo2d output" '
 
 !WRITE(funit,*) 'VARIABLES="X","Y","rho","u","v","p" '
 WRITE(funit,*) 'VARIABLES="X","Y","rho","u","v","p","M"'
-WRITE(funit,*) 'ZONE F=FEPOINT,ET=quadrilateral'
+!WRITE(funit,*) 'ZONE F=FEPOINT,ET=quadrilateral'
+WRITE(funit,*) 'ZONE F=FEPOINT,ET=',trim(ctype)
 WRITE(funit,*) 'N=',nop,',E=',noc
 do i=1,nop
 

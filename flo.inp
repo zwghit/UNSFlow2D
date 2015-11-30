@@ -8,7 +8,7 @@ Timemode  lusgs
 GMRES     20 1 0.1
 LastIter  0
 MaxIter   10000
-MinRes    1.0e-6
+MinRes    1.0e-12
 SaveInt   1000
 ScrInt    100
 NoIso     30
@@ -17,10 +17,3 @@ Limiter   1
 FarBC     0  0.0  0.0
 GridFile  "geometry.inp"
 
-GridFile  "converted/grids/naca.1398"
-GridFile  "../../grd/naca.1398"
-GridFile  "../../grd/naca.4738"
-GridFile  "../../grd/naca3.struct"
-GridFile  "/home/praveen/fvm/heat/run/naca2415.4420.tri"
-GridFile  "../../grd/rae.7883"
-GridFile  "../../grd-visc/naca-207x49.dat"

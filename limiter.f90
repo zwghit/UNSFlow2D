@@ -3,9 +3,9 @@
 subroutine limit
 implicit none
 
-call limiter_VKN
+!call limiter_VKN
 !call limiter_VKN1
-!call limiter_min_max
+call limiter_min_max
 !call limiter_vanAlbada
 
 
@@ -43,7 +43,7 @@ do i=1,noc
    enddo  
 enddo
 
-kappa=0.30
+kappa=0.01
 do i=1,noc
    
    !TOL=(kappa*cell(in)%ds)**2
@@ -180,7 +180,6 @@ do i=1,noc
       enddo
       cell(i)%dumax(j)=q_max-pv(j)
       cell(i)%dumin(j)=q_min-pv(j)
-      !cell(i)%phi(j)=1e20
    enddo  
 enddo
 

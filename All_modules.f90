@@ -183,7 +183,7 @@ integer(kind=i4):: nop,nof,noc
 
 type points
      real(kind=dp) :: x,y,z
-     real(kind=dp) :: prim(1:nvar)=0.d0,grad(1:nvar,1:nvar)=0.d0
+     real(kind=dp) :: prim(1:nvar)=0.d0,grad(1:ndim,1:nvar)=0.d0
      integer(kind=i4):: bc,flag,nv2c
      integer(kind=i4),dimension(:),pointer::v2c
      real(kind=dp),dimension(:),pointer::wt

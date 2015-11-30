@@ -27,8 +27,8 @@ SHELL=/bin/sh
 #SRCS= All_modules.f90 ausm_up_flux.f90 average.f90 common.f90 farfield_flux.f90 fvresidual.f90 geometric.f90 gradient.f90 hcusp_flux.f90 kfvs_flux.f90 limit.f90 lusgs.f90 main.f90 read_input.f90 result.f90 roe_flux.f90 smooth.f90 solid_flux.f90 vanleer_flux.f90 visc.f90	
 #OBJS= All_modules.o ausm_up_flux.o average.o common.o farfield_flux.o fvresidual.o geometric.o gradient.o hcusp_flux.o kfvs_flux.o limit.o lusgs.o main.o read_input.o result.o roe_flux.o smooth.o solid_flux.o vanleer_flux.o visc.o
 
-SRCS= All_modules.f90 geometric.f90  common.f90 farfield_flux.f90 fvresidual.f90   main.f90  lusgs.f90 read_input.f90 solid_flux.f90 vanleer_flux.f90 roe_flux.f90	
-OBJS= All_modules.o  geometric.o common.o farfield_flux.o fvresidual.o  main.o  lusgs.o read_input.o  solid_flux.o vanleer_flux.o roe_flux.o
+SRCS= All_modules.f90 average.f90 geometric.f90  common.f90 gradient.f90 timestep.f90 farfield_flux.f90 fvresidual.f90   main.f90  lusgs.f90 read_input.f90 solid_flux.f90 vanleer_flux.f90 roe_flux.f90 limiter.f90 ausm_up_flux.f90	
+OBJS= All_modules.o  average.o geometric.o common.o gradient.o timestep.o farfield_flux.o fvresidual.o  main.o  lusgs.o read_input.o  solid_flux.o vanleer_flux.o roe_flux.o limiter.o ausm_up_flux.o
 
 # Tunable parameters
 #
@@ -71,11 +71,11 @@ All_modules.o:     All_modules.f90
 main.o:     main.f90
 	   $(FC) -c $(LDFLAGS) $(FFLAGS) main.f90 $(LIBS)
 
-#ausm_up_flux.o: ausm_up_flux.f90
-#	   $(FC) -c $(LDFLAGS) $(FFLAGS) ausm_up_flux.f90 $(LIBS)
+ausm_up_flux.o: ausm_up_flux.f90
+	   $(FC) -c $(LDFLAGS) $(FFLAGS) ausm_up_flux.f90 $(LIBS)
 
-#average.o:     average.f90
-#	   $(FC) -c $(LDFLAGS) $(FFLAGS) average.f90 $(LIBS)
+average.o:     average.f90
+	   $(FC) -c $(LDFLAGS) $(FFLAGS) average.f90 $(LIBS)
 
 common.o:   common.f90
 	   $(FC) -c $(LDFLAGS) $(FFLAGS) common.f90 $(LIBS)
@@ -89,8 +89,11 @@ fvresidual.o:   fvresidual.f90
 geometric.o:   geometric.f90
 	   $(FC) -c $(LDFLAGS) $(FFLAGS) geometric.f90 $(LIBS)
 
-#gradient.o:   gradient.f90
-#	   $(FC) -c $(LDFLAGS) $(FFLAGS) gradient.f90 $(LIBS)
+gradient.o:   gradient.f90
+	   $(FC) -c $(LDFLAGS) $(FFLAGS) gradient.f90 $(LIBS)
+
+timestep.o:   timestep.f90
+	   $(FC) -c $(LDFLAGS) $(FFLAGS) timestep.f90 $(LIBS)
 
 #hcusp_flux.o:   hcusp_flux.f90
 #	   $(FC) -c $(LDFLAGS) $(FFLAGS) hcusp_flux.f90 $(LIBS)
@@ -98,8 +101,8 @@ geometric.o:   geometric.f90
 #kfvs_flux.o:   kfvs_flux.f90
 #	   $(FC) -c $(LDFLAGS) $(FFLAGS) kfvs_flux.f90 $(LIBS)
 
-#limit.o:   limit.f90
-#	   $(FC) -c $(LDFLAGS) $(FFLAGS) limit.f90 $(LIBS)
+limiter.o:   limiter.f90
+	   $(FC) -c $(LDFLAGS) $(FFLAGS) limiter.f90 $(LIBS)
 
 lusgs.o:  lusgs.f90 
 	   $(FC) -c $(LDFLAGS) $(FFLAGS) lusgs.f90 $(LIBS)
