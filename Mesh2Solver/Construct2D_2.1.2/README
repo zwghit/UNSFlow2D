@@ -1,0 +1,35 @@
+This is Construct2D, a structured grid generator designed for 2D airfoils.
+
+Copyright 2013 -- 2015 Daniel Prosser.
+
+Construct2D uses the GNU Public License Version 3, a copy of which can be
+found in the license directory.
+
+Version 2.1.2 release notes
+- Added FUN3D compatibility mode that will write grid and .nmf files in a format
+  that can be used by NASA's unstructured flow solver FUN3D. The grid is written
+  in 3D single-block .p3d format which can be converted using FUN3D's converter
+  plot3d_to_aflr3. The boundary conditions in the .nmf file are written using
+  FUN3D-native names so that the converter will be able to write a .mapbc file.
+
+Version 2.1.1 release notes
+- Improved .nmf file writing
+
+Version 2.1.0 release notes
+- Improved clustering algorithm minimizes stretching on airfoil surface and
+  allows user to explicitly set leading edge and trailing edge point spacings.
+  Results in better control over clustering and higher quality grids.
+- Bug fixes.
+
+Code features:
+- 2D grid generation for computational fluid dynamics, designed for airfoils
+  (but can also be used for other geometries)
+- 3D grids can be written by extruding the 2D plane with user-specified
+  spacing and number of planes
+- Command line interface with menu-driven design
+- Options may also be specified via namelist input for easier batch processing
+- Automatic surface grid smoothing and clustering control using XFoil
+  subroutines
+- Hyperbolic and elliptic grid generation available
+
+Full documentation is available in PDF form in the doc directory.
