@@ -8,8 +8,8 @@ integer(kind=i4)  :: i, j, ie, c1, c2
 real(kind=dp) :: nx, ny,x,y
 
 
-!call Gradient_LSQR
-call Gradient_GG
+call Gradient_LSQR
+!call Gradient_GG
 
 
 do i=1,nop

@@ -764,7 +764,7 @@ implicit none
 
 integer(kind=i4) :: i,j,c
 real(kind=dp)    :: dx,dy,xc,yc
-real(kind=dp)    :: r11,r12,r22
+real(kind=dp)    :: r11,r12,r22,alfa1,alfa2
 
 do i=1,nop
    xc=pt(i)%x 
@@ -788,9 +788,19 @@ do i=1,nop
    r12=r12/r11
    r22=dsqrt(r22-r12*r12 )
 
-   pt(i)%r11=r11
-   pt(i)%r12=r12
-   pt(i)%r22=r22
+   allocate(pt(i)%wx(pt(i)%nv2v),pt(i)%wy(pt(i)%nv2v))
+
+   do j=1,pt(i)%nv2v
+      c=pt(i)%v2v(j)
+      dx=pt(c)%x-xc
+      dy=pt(c)%y-yc
+
+      alfa1=dx/r11/r11
+      alfa2=(dy-dx*r12/r11)/r22/r22
+      pt(i)%wx(j)=alfa1-alfa2*r12/r11
+      pt(i)%wy(j)=alfa2
+   enddo
+
 enddo
 
 end subroutine LSQR_Coeff

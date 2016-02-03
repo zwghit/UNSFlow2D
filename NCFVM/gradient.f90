@@ -16,24 +16,13 @@ enddo
 do i=1,nop
    xc=pt(i)%x
    yc=pt(i)%y
-   r11=pt(i)%r11
-   r12=pt(i)%r12
-   r22=pt(i)%r22
 
-  do k=1,nvar
-   do j=1,pt(i)%nv2v
-      c=pt(i)%v2v(j)
-      dx=pt(c)%x-xc
-      dy=pt(c)%y-yc
-
-      alfa1=dx/r11/r11
-      alfa2=(dy-dx*r12/r11)/r22/r22
-      wx=alfa1-alfa2*r12/r11
-      wy=alfa2
-
-      pt(i)%grad(1,k)=pt(i)%grad(1,k)+(pt(c)%qp(k)-pt(i)%qp(k))*wx
-      pt(i)%grad(2,k)=pt(i)%grad(2,k)+(pt(c)%qp(k)-pt(i)%qp(k))*wy
-    enddo
+   do k=1,nvar
+      do j=1,pt(i)%nv2v
+         c=pt(i)%v2v(j)
+         pt(i)%grad(1,k)=pt(i)%grad(1,k)+(pt(c)%qp(k)-pt(i)%qp(k))*pt(i)%wx(j)
+         pt(i)%grad(2,k)=pt(i)%grad(2,k)+(pt(c)%qp(k)-pt(i)%qp(k))*pt(i)%wy(j)
+      enddo
    enddo
 
 enddo
@@ -59,19 +48,19 @@ do i=1,nop
    pt(i)%grad(:,:)=0.d0
 enddo
 
-do k=1,nop
+do i=1,nop
 
-   do i=1,pt(k)%nv2f
-      c=pt(k)%v2f(i)
+   do j=1,pt(i)%nv2f
+      c=pt(i)%v2f(j)
       p1=fc(c)%pt(1)
       p2=fc(c)%pt(2)
       ds=fc(c)%area
       dx=fc(c)%nx*ds
       dy=fc(c)%ny*ds
-      do j=1,nvar
-         var=0.5d0*(pt(p1)%qp(j)+pt(p2)%qp(j))
-         pt(k)%grad(1,j)=pt(k)%grad(1,j)+var*dx
-         pt(k)%grad(2,j)=pt(k)%grad(2,j)+var*dy
+      do k=1,nvar
+         var=0.5d0*(pt(p1)%qp(k)+pt(p2)%qp(k))
+         pt(i)%grad(1,k)=pt(i)%grad(1,k)+var*dx
+         pt(i)%grad(2,k)=pt(i)%grad(2,k)+var*dy
       enddo
    enddo
 

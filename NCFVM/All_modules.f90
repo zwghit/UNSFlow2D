@@ -12,7 +12,7 @@ integer, parameter :: qp=selected_real_kind(31,307)
 ! Small number
 !real(kind=dp) :: EPSILON
 !parameter(EPSILON=1.0d-16)
-real(kind=dp),parameter::eps=epsilon(1.d0)
+real(kind=sp),parameter::eps=epsilon(1.0)
 integer(kind=i4), parameter :: ndim=2
 end module data_type
 
@@ -185,7 +185,7 @@ type points
      integer(kind=i4):: nv2v,nv2c,nv2f
      real(kind=dp)   :: x,y,z
      real(kind=dp)   :: sx,sy,dt,la,ls,cv,ds
-     real(kind=dp)   :: r11,r12,r22,grad(1:ndim,1:nvar)=0.d0 
+     real(kind=dp)   :: grad(1:ndim,1:nvar)=0.d0 
      real(kind=dp)   :: qp(1:nvar)=0.d0,qc(1:nvar)=0.d0,qold(1:nvar)=0.d0,res(1:nvar)=0.d0
      real(kind=dp)   :: DUmax(1:nvar)=0.d0,DUmin(1:nvar)=0.d0,phi(1:nvar)=1e20
      integer(kind=i4):: bc,flag
@@ -193,6 +193,7 @@ type points
      integer(kind=i4),dimension(:),pointer::v2f
      integer(kind=i4),dimension(:),pointer::v2v
      real(kind=dp),dimension(:),pointer::wt
+     real(kind=dp),dimension(:),pointer::wx,wy
 end type points
 
 type faces
