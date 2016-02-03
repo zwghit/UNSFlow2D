@@ -1,2 +1,2 @@
 # UNSFlow2D
-Unstrucured 2d compressible flow solver
+Unstrucured 2d compressible Cell Centered FVM flow solver
