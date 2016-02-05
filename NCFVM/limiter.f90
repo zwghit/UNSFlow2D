@@ -23,70 +23,73 @@ real(kind=dp)    :: x1,y1,x2,y2,dx,dy
 
 real(kind=dp) :: ql(nvar),qr(nvar)
 real(kind=dp) :: nr, dr, phi, q_min, q_max,kappa
-real(kind=dp) :: TOL,alfa,D_L,D_L0
+real(kind=dp) :: TOL,alfa,D_L,D_L0,du
 
 do i=1,nop
-      pt(i)%DUmin(:)=0.d0
-      pt(i)%DUmax(:)=0.d0 
-      pv(:)=pt(i)%qp(:) 
-     
+   pt(i)%DUmin(:)=eps
+   pt(i)%DUmax(:)=-eps 
+enddo
+
+do i=1,nof
+   p1=fc(i)%pt(1)
+   p2=fc(i)%pt(2)
    do j=1,nvar
-      q_min=pv(j)
-      q_max=pv(j)
-      do k=1,pt(i)%nv2v
-         c=pt(i)%v2v(k)
-         q_min=dmin1(pt(c)%qp(j),q_min)
-         q_max=dmax1(pt(c)%qp(j),q_max)
-      enddo
-      pt(i)%dumax(j)=q_max-pv(j)
-      pt(i)%dumin(j)=q_min-pv(j)
+      du=pt(p2)%qp(j)-pt(p1)%qp(j)  
+      pt(p1)%dumax(j)=dmax1(pt(p1)%dumax(j), du)
+      pt(p1)%dumin(j)=dmin1(pt(p1)%dumin(j), du)
+      pt(p2)%dumax(j)=dmax1(pt(p2)%dumax(j),-du)
+      pt(p2)%dumin(j)=dmin1(pt(p2)%dumin(j),-du)
    enddo  
 enddo
 
-kappa=0.3d0
-do i=1,nop
+kappa=0.01
+do i=1,nof
+   p1=fc(i)%pt(1)
+   p2=fc(i)%pt(2)
+   dist(1)=pt(p2)%x-pt(p1)%x
+   dist(2)=pt(p2)%y-pt(p1)%y 
    
-   !TOL=(kappa*pt(i)%ds)**2
-   TOL=(kappa*dsqrt(pt(i)%cv))**3
-
    do j=1,nvar 
 
-      do k=1,pt(i)%nv2f
-         c=pt(i)%v2f(k)
-         p1=fc(c)%pt(1)
-         p2=fc(c)%pt(2)
-         if(p2==i) then 
-            print*,i,p1,p2
-            p1=fc(c)%pt(2)
-            p2=fc(c)%pt(1)
-         endif  
-         dist(1)=pt(p2)%x-pt(p1)%x
-         dist(2)=pt(p2)%y-pt(p1)%y 
-         D_L=sum(pt(i)%grad(:,j)*dist(:))
-         !D_L0=dsign(D_L,1.d0)*(dabs(D_L)+eps)
-         D_L0=D_L
+         !---------------i
+         D_L=0.5d0*(sum(pt(p1)%grad(:,j)*dist(:)))
 
-         if(D_L>eps) then
-            alfa=pt(i)%dumax(j)
-            if(dabs(alfa)<eps) alfa=0.d0
-            nr=(alfa*alfa+TOL)*D_L+2.d0*D_L*D_L*alfa
-            dr=alfa*alfa+2.d0*D_L*D_L+alfa*D_L+TOL
-            phi=dmin1(1.d0,nr/dr)
-         elseif(D_L<-eps) then
-            alfa=pt(i)%dumin(j)
-            if(dabs(alfa)<eps) alfa=0.d0
-            nr=(alfa*alfa+TOL)*D_L+2.d0*D_L*D_L*alfa
-            dr=alfa*alfa+2.d0*D_L*D_L+alfa*D_L+TOL
-            phi=dmin1(1.d0,nr/dr)
-         elseif(D_L==eps) then
-         !else
-            print*,i,j,D_L
-            phi=0.d0
-         endif 
+         !TOL=(kappa*(pt(p1)%dumax(j)-pt(p1)%dumin(j)))**2
+         TOL=(kappa*dsqrt(pt(p1)%cv))**3
+ 
+         if(D_L>0.0d0) then 
+            alfa=pt(p1)%dumax(j)
+         else 
+            alfa=pt(p1)%dumin(j)
+         endif
+
+         if(dabs(alfa)<eps) alfa=0.d0
+         nr=alfa*alfa+2.d0*D_L*alfa+TOL
+         dr=alfa*alfa+2.d0*D_L*D_L+D_L*alfa+TOL    
+         phi=dmin1(1.d0,nr/dr)
+
+         pt(p1)%phi(j)=dmin1(pt(p1)%phi(j),phi)
+
+         !---------------j
+         D_L=0.5d0*(sum(pt(p2)%grad(:,j)*dist(:)))
+
+         !TOL=(kappa*(pt(p2)%dumax(j)-pt(p2)%dumin(j)))**2
+         TOL=(kappa*dsqrt(pt(p2)%cv))**3
+ 
+         if(D_L>0.0d0) then 
+            alfa=pt(p2)%dumax(j)
+         else 
+            alfa=pt(p2)%dumin(j)
+         endif
+
+         if(dabs(alfa)<eps) alfa=0.d0
+         nr=alfa*alfa+2.d0*D_L*alfa+TOL
+         dr=alfa*alfa+2.d0*D_L*D_L+D_L*alfa+TOL    
+         phi=dmin1(1.d0,nr/dr)
+
       
-         pt(i)%phi(j)=dmin1(pt(i)%phi(j),phi)
+         pt(p2)%phi(j)=dmin1(pt(p2)%phi(j),phi)
 
-      enddo  
    enddo  
 enddo  
 
@@ -108,65 +111,74 @@ use commons
 implicit none
 integer(kind=i4):: i,j,k,c,p1,p2
 real(kind=dp)   :: nr,dr,phi,q_min,q_max,kappa
-real(kind=dp)   :: TOL,alfa,D_L,var,D_L0
+real(kind=dp)   :: TOL,alfa,D_L,var,D_L0,du
 real(kind=dp)   :: pv(nvar),dist(ndim)
 
 do i=1,nop
-      pt(i)%DUmin(:)=0.d0
-      pt(i)%DUmax(:)=0.d0 
-     
-   do j=1,nvar
-      q_min=1e20
-      q_max=-1e20
-      do k=1,pt(i)%nv2v
-         c=pt(i)%v2v(k)
-         q_min=dmin1(pt(c)%qp(j),q_min)
-         q_max=dmax1(pt(c)%qp(j),q_max)
-      enddo
-      q_min=dmin1(pt(i)%qp(j),q_min)
-      q_max=dmax1(pt(i)%qp(j),q_max)
+   pt(i)%DUmin(:)=eps
+   pt(i)%DUmax(:)=-eps 
+enddo
 
-      pt(i)%dumax(j)=q_max-pt(i)%qp(j)
-      pt(i)%dumin(j)=q_min-pt(i)%qp(j)
+do i=1,nof
+   p1=fc(i)%pt(1)
+   p2=fc(i)%pt(2)
+   do j=1,nvar
+      du=pt(p2)%qp(j)-pt(p1)%qp(j)  
+      pt(p1)%dumax(j)=dmax1(pt(p1)%dumax(j), du)
+      pt(p1)%dumin(j)=dmin1(pt(p1)%dumin(j), du)
+      pt(p2)%dumax(j)=dmax1(pt(p2)%dumax(j),-du)
+      pt(p2)%dumin(j)=dmin1(pt(p2)%dumin(j),-du)
    enddo  
 enddo
 
-kappa=0.1
-do i=1,nop
-   !TOL=kappa*pt(i)%cv
-   !TOL=(kappa*pt(i)%ds)**2
-   TOL=(kappa*dsqrt(pt(i)%cv))**3
+kappa=0.01
+do i=1,nof
+   p1=fc(i)%pt(1)
+   p2=fc(i)%pt(2)
+   dist(1)=pt(p2)%x-pt(p1)%x
+   dist(2)=pt(p2)%y-pt(p1)%y 
    
    do j=1,nvar 
-      do k=1,pt(i)%nv2f
-         c=pt(i)%v2f(k)
-         p1=fc(c)%pt(1)
-         p2=fc(c)%pt(2)
-         if(p2==i) then 
-            p1=fc(c)%pt(2)
-            p2=fc(c)%pt(1)
-         endif  
-         dist(1)=pt(p2)%x-pt(p1)%x
-         dist(2)=pt(p2)%y-pt(p1)%y 
-         D_L=sum(pt(i)%grad(:,j)*dist(:))
-         !D_L=dsign(D_L,1.d0)*(dabs(D_L)+eps)
 
-         !TOL=(kappa*(pt(i)%dumax(j)-pt(i)%dumin(j)))**2
+         !---------------i
+         D_L=0.5d0*(sum(pt(p1)%grad(:,j)*dist(:)))
+
+         !TOL=(kappa*(pt(p1)%dumax(j)-pt(p1)%dumin(j)))**2
+         TOL=(kappa*dsqrt(pt(p1)%cv))**3
  
-         alfa=pt(i)%dumax(j)
-         if(D_L<0.d0 ) alfa=pt(i)%dumin(j)
-         phi=1.d0 
-         if(D_L/=0.d0) then
-            if(dabs(alfa)<eps) alfa=0.d0
-            nr=alfa*alfa+2.d0*D_L*alfa+TOL
-            dr=alfa*alfa+2.d0*D_L*D_L+D_L*alfa+TOL    
-            phi=dmin1(1.d0,nr/dr)
-            !phi=nr/dr
+         if(D_L>0.d0) then 
+            alfa=pt(p1)%dumax(j)
+         else
+            alfa=pt(p1)%dumin(j)
          endif
 
-         pt(i)%phi(j)=dmin1(pt(i)%phi(j),phi)
-         !pt(i)%phi(j)=phi
-      enddo  
+         if(dabs(alfa)<eps) alfa=0.d0
+
+         nr=alfa*alfa+2.d0*D_L*alfa+TOL
+         dr=alfa*alfa+2.d0*D_L*D_L+D_L*alfa+TOL    
+         !phi=nr/dr
+         phi=dmin1(1.d0,nr/dr)
+         pt(p1)%phi(j)=dmin1(pt(p1)%phi(j),phi)
+
+         !---------------j
+         D_L=-0.5d0*(sum(pt(p2)%grad(:,j)*dist(:)))
+
+         TOL=(kappa*(pt(p2)%dumax(j)-pt(p2)%dumin(j)))**2
+         TOL=(kappa*dsqrt(pt(p2)%cv))**3
+ 
+         if(D_L>0.d0) then 
+            alfa=pt(p2)%dumax(j)
+         else
+            alfa=pt(p2)%dumin(j)
+         endif
+
+         if(dabs(alfa)<eps) alfa=0.d0
+
+         nr=alfa*alfa+2.d0*D_L*alfa+TOL
+         dr=alfa*alfa+2.d0*D_L*D_L+D_L*alfa+TOL    
+         phi=dmin1(1.d0,nr/dr)
+         pt(p2)%phi(j)=dmin1(pt(p2)%phi(j),phi)
+
    enddo  
 enddo  
 

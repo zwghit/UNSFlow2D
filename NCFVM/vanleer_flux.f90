@@ -33,7 +33,7 @@ qcr(:)=0.d0
 
 dist(1)=pt(c2)%x-pt(c1)%x
 dist(2)=pt(c2)%y-pt(c1)%y
-
+dist(:)=0.5d0*dist(:)
 grad(:)=0.d0
 do i=1,ndim
    grad(:)=grad(:)+pt(c1)%grad(i,:)*dist(i)
@@ -65,7 +65,7 @@ do i=1,ndim
    grad(:)=grad(:)+pt(c2)%grad(i,:)*dist(i)
 enddo
 
-qcr(:)=pt(c2)%qp(:)+grad(:)
+qcr(:)=pt(c2)%qp(:)-grad(:)
 !do i=1,ndim
 !qcr(:)=qcr(:)-pt(c2)%grad(i,:)*dist(i)
 !enddo
