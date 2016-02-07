@@ -27,8 +27,6 @@ do i=1,nop
 
 enddo
 
-call limit
-
 end subroutine Gradient_LSQR
 
 !======================================================================================
@@ -74,9 +72,6 @@ do i=1,nop
    enddo
 enddo
 
-!return
-
-call limit
 
 end subroutine Gradient_GG
 

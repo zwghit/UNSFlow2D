@@ -1,6 +1,6 @@
 Start     1
 FlowType  inviscid
-Mach      0.8
+Mach      1.2
 AOA       1.25
 Reynolds  5000.0
 CFL       1000

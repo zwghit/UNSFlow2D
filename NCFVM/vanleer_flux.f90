@@ -1,5 +1,5 @@
 !==============================================================================
-subroutine vanleer_flux(ie,c1,c2)
+subroutine vanleer_flux(ie,c1,c2,qcl,qcr)
 !==============================================================================
 !#  computes total convective flux across a face using van leer
 !#  flux vector splitting method given left and right conserved states
@@ -28,24 +28,6 @@ nx = fc(ie)%nx
 ny = fc(ie)%ny
 area = fc(ie)%area  
 
-qcl(:)=0.d0
-qcr(:)=0.d0
-
-dist(1)=pt(c2)%x-pt(c1)%x
-dist(2)=pt(c2)%y-pt(c1)%y
-dist(:)=0.5d0*dist(:)
-grad(:)=0.d0
-do i=1,ndim
-   grad(:)=grad(:)+pt(c1)%grad(i,:)*dist(i)
-enddo
-
-!     Left state
-qcl(:)=pt(c1)%qp(:)+grad(:)
-!qcl(:)=pt(c1)%qp(:)
-!do i=1,ndim
-!qcl(:)=qcl(:)+pt(c1)%grad(i,:)*dist(i)
-!enddo
-
 rl = qcl(1)
 ul = qcl(2)
 vl = qcl(3)
@@ -58,17 +40,6 @@ hl = al2/GAMMA1 + 0.5d0*ql2
 cl =dsqrt(al2)
 ml = unl/cl
 
-
-!     Right state
-grad(:)=0.d0
-do i=1,ndim
-   grad(:)=grad(:)+pt(c2)%grad(i,:)*dist(i)
-enddo
-
-qcr(:)=pt(c2)%qp(:)-grad(:)
-!do i=1,ndim
-!qcr(:)=qcr(:)-pt(c2)%grad(i,:)*dist(i)
-!enddo
 
 
 rr = qcr(1)
