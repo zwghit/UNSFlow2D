@@ -49,16 +49,14 @@ enddo
 do i=1,nof
    p1=fc(i)%pt(1)
    p2=fc(i)%pt(2)
-   ds=fc(i)%area
-   dx=fc(i)%nx*ds
-   dy=fc(i)%ny*ds
+   ds=fc(c)%area
+   dx=fc(c)%nx*ds
+   dy=fc(c)%ny*ds
 
    do k=1,nvar
       var=0.5d0*(pt(p1)%qp(k)+pt(p2)%qp(k))
-      pt(p1)%grad(1,k)=pt(p1)%grad(1,k)+var*dx
-      pt(p1)%grad(2,k)=pt(p1)%grad(2,k)+var*dy
-      pt(p2)%grad(1,k)=pt(p2)%grad(1,k)-var*dx
-      pt(p2)%grad(2,k)=pt(p2)%grad(2,k)-var*dy
+      pt(i)%grad(1,k)=pt(i)%grad(1,k)+var*dx
+      pt(i)%grad(2,k)=pt(i)%grad(2,k)+var*dy
    enddo
 
 enddo

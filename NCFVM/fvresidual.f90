@@ -8,10 +8,10 @@ integer(kind=i4)  :: i, j, ie, p1, p2,recon
 real(kind=dp) :: nx, ny,x,y,left(nvar),right(nvar)
 real(kind=dp) :: dist(ndim),grad(nvar)
 
-call Gradient_LSQR
-!call Gradient_GG
+!call Gradient_LSQR
+call Gradient_GG
 
-recon=0
+recon=1
 
 do i=1,nop
    do j=1,nvar

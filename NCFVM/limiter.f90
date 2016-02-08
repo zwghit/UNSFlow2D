@@ -3,8 +3,8 @@
 subroutine LinearReconLimiter 
 implicit none
 
-!call limiter_VKN
-call limiter_vanAlbada
+call limiter_VKN
+!call limiter_vanAlbada
 !call limiter_min_max
 
 
