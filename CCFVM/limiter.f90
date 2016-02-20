@@ -3,145 +3,98 @@
 subroutine limit
 implicit none
 
-!call limiter_VKN
-!call limiter_VKN1
+call limiter_VKN
 !call limiter_vanAlbada
-call limiter_min_max
+!call limiter_min_max
 
 
 end subroutine limit
 
 !======================================================================================
-
-subroutine limiter_VKN1 
-use grid 
-use commons
-implicit none
-integer(kind=i4) :: i,j,k,ie,in,out,p1,p2,c
-real(kind=dp) :: q2, pv(nvar),dist(ndim)
-real(kind=dp)    :: x1,y1,x2,y2,dx,dy
-
-real(kind=dp) :: ql(nvar),qr(nvar)
-real(kind=dp) :: nr, dr, phi, q_min, q_max,kappa
-real(kind=dp) :: TOL,alfa,D_L,D_L0
-
-do i=1,noc
-      cell(i)%DUmin(:)=0.d0
-      cell(i)%DUmax(:)=0.d0 
-      pv(:)=cell(i)%qp(:) 
-     
-   do j=1,nvar
-      q_min=pv(j)
-      q_max=pv(j)
-      do k=1,cell(i)%nc2c
-         c=cell(i)%c2c(k)
-         q_min=dmin1(cell(c)%qp(j),q_min)
-         q_max=dmax1(cell(c)%qp(j),q_max)
-      enddo
-      cell(i)%dumax(j)=q_max-pv(j)
-      cell(i)%dumin(j)=q_min-pv(j)
-   enddo  
-enddo
-
-kappa=0.01
-do i=1,noc
-   
-   !TOL=(kappa*cell(in)%ds)**2
-   TOL=(kappa*dsqrt(cell(i)%cv))**3
-
-   do j=1,nvar 
-
-      do k=1,cell(i)%nc2f
-         c=cell(i)%c2f(k)
-         dist(:)=fc(c)%cen(:)-cell(i)%cen(:)
-         D_L=sum(cell(i)%grad(:,j)*dist(:))
-         D_L0=D_L
-
-         if(D_L>eps) then
-            alfa=cell(i)%dumax(j)
-            if(dabs(alfa)<eps) alfa=0.d0
-            nr=(alfa*alfa+TOL)*D_L+2.d0*D_L*D_L*alfa
-            dr=alfa*alfa+2.d0*D_L*D_L+alfa*D_L+TOL
-            phi=dmin1(1.d0,nr/dr/D_L0)
-         elseif(D_L<-eps) then
-            alfa=cell(i)%dumin(j)
-            if(dabs(alfa)<eps) alfa=0.d0
-            nr=(alfa*alfa+TOL)*D_L+2.d0*D_L*D_L*alfa
-            dr=alfa*alfa+2.d0*D_L*D_L+alfa*D_L+TOL
-            phi=dmin1(1.d0,nr/dr/D_L0)
-         else
-            phi=1.d0
-         endif 
-      
-         cell(i)%phi(j)=dmin1(cell(i)%phi(j),phi)
-
-      enddo  
-   enddo  
-enddo  
-
-do i=1,noc
-   do j=1,nvar 
-      cell(i)%grad(1:ndim,j)=cell(i)%grad(1:ndim,j)*cell(i)%phi(j)
-   enddo
-enddo
-
-end subroutine limiter_VKN1 
-
-!======================================================================================
-
 subroutine limiter_VKN 
 use grid 
 use commons
 implicit none
-integer(kind=i4):: i,j,k,c
-real(kind=dp)   :: nr,dr,phi,q_min,q_max,kappa
+integer(kind=i4):: i,j,k,c1,c2
+real(kind=dp)   :: nr,dr,phi,kappa,du
 real(kind=dp)   :: TOL,alfa,D_L,var,dist(ndim),D_L0
 
 do i=1,noc
-   cell(i)%DUmin(:)=0.d0
-   cell(i)%DUmax(:)=0.d0 
+   cell(i)%DUmin(:)=eps
+   cell(i)%DUmax(:)=-eps
+enddo
+
+do i=1,nof
+   c1 = fc(i)%in
+   c2 = fc(i)%out
+   if(c1/=0.and.c2/=0) then 
    do j=1,nvar
-      var=cell(i)%qp(j) 
-      q_min=var   
-      q_max=-var  
-      do k=1,cell(i)%nc2c
-         c=cell(i)%c2c(k)
-         q_min=dmin1(cell(c)%qp(j),q_min)
-         q_max=dmax1(cell(c)%qp(j),q_max)
-      enddo
-      cell(i)%dumax(j)=q_max-var   
-      cell(i)%dumin(j)=q_min-var   
-   enddo  
+      du=cell(c2)%qp(j)-cell(c1)%qp(j)
+      cell(c1)%dumax(j)=dmax1(cell(c1)%dumax(j), du)
+      cell(c1)%dumin(j)=dmin1(cell(c1)%dumin(j), du)
+      cell(c2)%dumax(j)=dmax1(cell(c2)%dumax(j),-du)
+      cell(c2)%dumin(j)=dmin1(cell(c2)%dumin(j),-du)
+   enddo
+   endif
 enddo
 
 kappa=0.3
-do i=1,noc
-   TOL=(kappa*dsqrt(cell(i)%cv))**3
-   do j=1,nvar 
-      do k=1,cell(i)%nc2c
-         c=cell(i)%c2c(k)
-         dist(:)=fc(c)%cen(:)-cell(i)%cen(:)
-         D_L=sum(cell(i)%grad(:,j)*dist(:))
-         !D_L0=dsign(D_L,1.d0)*(dabs(D_L)+1e-12)
-         D_L0=D_L
- 
-         if(D_L>eps ) then
-            alfa=cell(i)%dumax(j)
-            nr=(alfa*alfa+TOL)*D_L+2.d0*D_L*D_L*alfa
-            dr=alfa*alfa+2.d0*D_L*D_L+D_L*alfa+TOL    
-            phi=nr/dr/D_L0
-         elseif(D_L<-eps) then
-            alfa=cell(i)%dumin(j)
-            nr=(alfa*alfa+TOL)*D_L+2.d0*D_L*D_L*alfa
-            dr=alfa*alfa+2.d0*D_L*D_L+D_L*alfa+TOL      
-            phi=nr/dr/D_L0
+
+do i=1,nof
+   c1 = fc(i)%in
+   c2 = fc(i)%out
+
+
+   if(c1/=0.and.c2/=0) then 
+   do j=1,nvar
+
+         !---------------i
+         dist(:)=fc(i)%cen(:)-cell(c1)%cen(:)
+         D_L=sum(cell(c1)%grad(:,j)*dist(:))
+
+         !TOL=(kappa*(cell(c1)%dumax(j)-cell(c1)%dumin(j)))**2
+         TOL=(kappa*dsqrt(cell(c1)%cv))**3
+
+         if(D_L>0.d0) then
+            alfa=cell(c1)%dumax(j)
          else
-            phi=1.d0   
-         endif 
-         cell(i)%phi(j)=dmin1(cell(i)%phi(j),phi)
-      enddo  
-   enddo  
-enddo  
+            alfa=cell(c1)%dumin(j)
+         endif
+
+         if(dabs(alfa)<eps) alfa=0.d0
+
+         nr=alfa*alfa+2.d0*D_L*alfa+TOL
+         dr=alfa*alfa+2.d0*D_L*D_L+D_L*alfa+TOL
+         !phi=nr/dr
+         phi=dmin1(1.d0,nr/dr)
+         cell(c1)%phi(j)=dmin1(cell(c1)%phi(j),phi)
+
+         !---------------j
+         dist(:)=fc(i)%cen(:)-cell(c2)%cen(:)
+         D_L=sum(cell(c2)%grad(:,j)*dist(:))
+
+         !TOL=(kappa*(cell(c2)%dumax(j)-cell(c2)%dumin(j)))**2
+         TOL=(kappa*dsqrt(cell(c2)%cv))**3
+
+         if(D_L>0.d0) then
+            alfa=cell(c2)%dumax(j)
+         else
+            alfa=cell(c2)%dumin(j)
+         endif
+
+         if(dabs(alfa)<eps) alfa=0.d0
+
+         nr=alfa*alfa+2.d0*D_L*alfa+TOL
+         dr=alfa*alfa+2.d0*D_L*D_L+D_L*alfa+TOL
+         !phi=nr/dr
+         phi=dmin1(1.d0,nr/dr)
+         cell(c2)%phi(j)=dmin1(cell(c2)%phi(j),phi)
+
+   enddo
+   endif
+enddo
+
+
 
 do i=1,noc
    do j=1,nvar 
@@ -157,60 +110,67 @@ subroutine limiter_vanAlbada
 use grid 
 use commons
 implicit none
-integer(kind=i4) :: i,j,k,ie,in,out,p1,p2,c
+integer(kind=i4) :: i,j,c1,c2
 real(kind=dp) :: q2, pv(nvar)
 real(kind=dp)    :: x1,y1,x2,y2,dx,dy
 
 real(kind=dp) :: ql(nvar),qr(nvar),dist(ndim)
-real(kind=dp) :: nr, dr, phi, q_min, q_max
+real(kind=dp) :: phi,du
 real(kind=dp) :: alfa,D_L,D_L0,rk
 
+
 do i=1,noc
-      cell(i)%DUmin(:)=0.d0
-      cell(i)%DUmax(:)=0.d0 
-      pv(:)=cell(i)%qp(:) 
-     
-   do j=1,nvar
-      q_min=pv(j)
-      q_max=pv(j)
-      do k=1,cell(i)%nc2c
-         c=cell(i)%c2c(k)
-         q_min=dmin1(cell(c)%qp(j),q_min)
-         q_max=dmax1(cell(c)%qp(j),q_max)
-      enddo
-      cell(i)%dumax(j)=q_max-pv(j)
-      cell(i)%dumin(j)=q_min-pv(j)
-   enddo  
+   cell(i)%DUmin(:)=eps
+   cell(i)%DUmax(:)=-eps
 enddo
 
-do i=1,noc
-   
-   do j=1,nvar 
+do i=1,nof
+   c1 = fc(i)%in
+   c2 = fc(i)%out
+   if(c1/=0.and.c2/=0) then 
+   do j=1,nvar
+      du=cell(c2)%qp(j)-cell(c1)%qp(j)
+      cell(c1)%dumax(j)=dmax1(cell(c1)%dumax(j), du)
+      cell(c1)%dumin(j)=dmin1(cell(c1)%dumin(j), du)
+      cell(c2)%dumax(j)=dmax1(cell(c2)%dumax(j),-du)
+      cell(c2)%dumin(j)=dmin1(cell(c2)%dumin(j),-du)
+   enddo
+   endif
+enddo
 
-      do k=1,cell(i)%nc2c
-         c=cell(i)%c2c(k)
-         dist(:)=fc(c)%cen(:)-cell(i)%cen(:)
-         D_L=sum(cell(i)%grad(:,j)*dist(:))
-         D_L0=dsign(D_L,1.d0)*(dabs(D_L)+eps) 
-         !D_L0=D_L
+do i=1,nof
+   c1 = fc(i)%in
+   c2 = fc(i)%out
 
-         if(D_L>eps) then
-            !rk=cell(i)%dumax(j)/D_L0
-            !phi=VanAlbada(rk)
-            phi=Albada(cell(i)%dumax(j),D_L0)
-         elseif(D_L<-eps) then
-            !rk=cell(i)%dumin(j)/D_L0
-            !phi=VanAlbada(rk)
-            phi=Albada(cell(i)%dumin(j),D_L0)
+   if(c1/=0.and.c2/=0) then 
+   do j=1,nvar
+
+         !---------------i
+         dist(:)=fc(i)%cen(:)-cell(c1)%cen(:)
+         D_L=sum(cell(c1)%grad(:,j)*dist(:))
+         if(D_L>0.d0) then
+            phi=Albada(cell(c1)%dumax(j),D_L)
          else
-            phi=1.d0
-         endif 
-      
-         cell(i)%phi(j)=dmin1(cell(i)%phi(j),phi)
+            phi=Albada(cell(c1)%dumin(j),D_L)
+         endif
 
-      enddo  
-   enddo  
-enddo  
+         cell(c1)%phi(j)=dmin1(cell(c1)%phi(j),phi)
+
+         !---------------j
+         dist(:)=fc(i)%cen(:)-cell(c2)%cen(:)
+         D_L=sum(cell(c2)%grad(:,j)*dist(:))
+         !D_L0=dsign(D_L,1.d0)*(dabs(D_L)+eps) 
+         if(D_L>0.d0) then
+            phi=Albada(cell(c2)%dumax(j),D_L)
+         else
+            phi=Albada(cell(c2)%dumin(j),D_L)
+         endif
+
+         cell(c2)%phi(j)=dmin1(cell(c2)%phi(j),phi)
+
+   enddo
+   endif
+enddo
 
 do i=1,noc
    do j=1,nvar 
@@ -241,55 +201,66 @@ subroutine limiter_min_max
 use grid 
 use commons
 implicit none
-integer(kind=i4) :: i,j,k,c
+integer(kind=i4) :: i,j,k,c1,c2
 
 real(kind=dp) :: var,dist(ndim)
-real(kind=dp) :: phi, q_min, q_max,kappa
-real(kind=dp) :: TOL,alfa,D_L
+real(kind=dp) :: phi, kappa
+real(kind=dp) :: TOL,alfa,D_L,du
 
 do i=1,noc
-      cell(i)%DUmin(:)=0.d0
-      cell(i)%DUmax(:)=0.d0 
-     
-   do j=1,nvar
-      var=cell(i)%qp(j)
-      q_min=var
-      q_max=var
-      do k=1,cell(i)%nc2c
-         c=cell(i)%c2c(k)
-         q_min=dmin1(cell(c)%qp(j),q_min)
-         q_max=dmax1(cell(c)%qp(j),q_max)
-      enddo
-      cell(i)%dumax(j)=q_max-var   
-      cell(i)%dumin(j)=q_min-var
-      !cell(i)%phi(j)=1e20
-   enddo  
+   cell(i)%DUmin(:)=eps
+   cell(i)%DUmax(:)=-eps
 enddo
 
-do i=1,noc
-   
-   do j=1,nvar 
-      q_max=cell(i)%dumax(j)
-      q_min=cell(i)%dumin(j)
+do i=1,nof
+   c1 = fc(i)%in
+   c2 = fc(i)%out
+   if(c1/=0.and.c2/=0) then 
+   do j=1,nvar
+      du=cell(c2)%qp(j)-cell(c1)%qp(j)
+      cell(c1)%dumax(j)=dmax1(cell(c1)%dumax(j), du)
+      cell(c1)%dumin(j)=dmin1(cell(c1)%dumin(j), du)
+      cell(c2)%dumax(j)=dmax1(cell(c2)%dumax(j),-du)
+      cell(c2)%dumin(j)=dmin1(cell(c2)%dumin(j),-du)
+   enddo
+   endif
+enddo
 
-      do k=1,cell(i)%nc2c
-         c=cell(i)%c2c(k)
-         dist(:)=fc(c)%cen(:)-cell(i)%cen(:)
-         D_L=sum(cell(i)%grad(:,j)*dist(:))
+do i=1,nof
+   c1 = fc(i)%in
+   c2 = fc(i)%out
 
-         if(D_L>eps ) then
-            phi=dmin1(1.d0,q_max/D_L)
-         elseif(D_L< -eps) then
-            phi=dmin1(1.d0,q_min/D_L)
-         !else
-         !   phi=1.d0
-         endif 
-      
-         cell(i)%phi(j)=dmin1(cell(i)%phi(j),phi)
+   if(c1/=0.and.c2/=0) then 
+   do j=1,nvar
 
-      enddo  
-   enddo  
-enddo  
+         !---------------i
+         dist(:)=fc(i)%cen(:)-cell(c1)%cen(:)
+         D_L=sum(cell(c1)%grad(:,j)*dist(:))
+         D_L0=dsign(D_L,1.d0)*(dabs(D_L)+eps) 
+         if(D_L>0.d0) then
+            phi=dmin1(1.d0,cell(c1)%dumax(j) /D_L0)
+         else
+            phi=dmin1(1.d0,cell(c1)%dumin(j) /D_L0)
+         endif
+
+         cell(c1)%phi(j)=dmin1(cell(c1)%phi(j),phi)
+
+         !---------------j
+         dist(:)=fc(i)%cen(:)-cell(c2)%cen(:)
+         D_L=sum(cell(c2)%grad(:,j)*dist(:))
+         D_L0=dsign(D_L,1.d0)*(dabs(D_L)+eps) 
+         if(D_L>0.d0) then
+            phi=dmin1(1.d0,cell(c2)%dumax(j) /D_L0)
+         else
+            phi=dmin1(1.d0,cell(c2)%dumin(j) /D_L0)
+         endif
+
+         cell(c2)%phi(j)=dmin1(cell(c2)%phi(j),phi)
+
+   enddo
+   endif
+enddo
+
 
 do i=1,noc
    do j=1,nvar 

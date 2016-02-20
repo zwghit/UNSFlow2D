@@ -123,7 +123,7 @@ enddo
 close(99)
 
 call tecplt 
-call tecplt_del 
+!call tecplt_del 
 
 !call check_positivity
 
@@ -299,7 +299,7 @@ character(len=15) :: ctype
 if(maxval(cell(:)%nc2f) == 3) ctype="TRIANGLE"
 if(maxval(cell(:)%nc2f) == 4) ctype="quadrilateral"
 
-funit = 5
+funit = 3
 call avg_c2v
 
 OPEN(funit,file='tecplt.dat')
@@ -359,7 +359,7 @@ real(kind=dp) :: q2, mach,entropy,mul,mutot,sutherland
 real(kind=dp) :: ro , uo,vo,po,wt,x1,x2,y1,y2
 character(len=15) :: ctype
 
-funit = 5
+funit = 4
 call avg_Grad_c2v
 
 
